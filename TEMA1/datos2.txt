@@ -1,0 +1,25 @@
+# Declaraciones de variables
+DECLARAR a int
+DECLARAR b float
+DECLARAR mensaje string
+DECLARAR letra char
+DECLARAR flag bool
+DECLARAR nombre string
+DECLARAR caracter char
+
+a = 10
+b = 5.5
+mensaje = "Hola, mundo!"
+letra = 'x'
+flag = True
+nombre = "ChatGPT"
+caracter = 'b'
+
+x = 10 
+a = "Hola"
+a = 5.8
+letra = "Hola" 
+flag = 'x'
+nombre ChatGPT
+x = None
+
