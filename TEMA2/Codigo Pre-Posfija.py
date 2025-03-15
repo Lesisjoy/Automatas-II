@@ -105,7 +105,7 @@ def generar_codigo_intermedio(expresiones):
 
 # Lista de expresiones a evaluar
 expresiones = [
-    "(m / n) + (p % q)",
+    "(a + b) * (c -(d +e))",
     "(m + n) * (p - q) / r",
     "a + b * c - d / e"
 ]
