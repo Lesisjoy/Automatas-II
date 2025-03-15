@@ -1,0 +1,167 @@
+
+----- Expresión 1: (a + b) * (c -(d +e)) -----
+
+📌 Notaciones:
+🔹 Prefija: * + a b - c + d e
+🔹 Postfija: a b + c d e + - *
+
+📌 Código Intermedio:
+T0 = a + b
+T1 = d + e
+T2 = c - T1
+T3 = T0 * T2
+Z = T3
+
+📌 Código P (desde código intermedio):
+PUSH a
+PUSH b
+ADD
+PUSH d
+PUSH e
+ADD
+PUSH c
+PUSH T1
+SUB
+PUSH T0
+PUSH T2
+MUL
+
+📌 Código P (directo desde infijo):
+PUSH a
+PUSH b
+ADD
+PUSH c
+PUSH d
+PUSH e
+ADD
+SUB
+MUL
+
+📌 Triplos:
+(1, a, +, b)
+(2, d, +, e)
+(3, c, -, T1)
+(4, T0, *, T2)
+(5, =, T3, Z)
+
+📌 Cuádruplos:
+(1, a, +, b, T0)
+(2, d, +, e, T1)
+(3, c, -, T1, T2)
+(4, T0, *, T2, T3)
+(5, =, T3, Z, -)
+
+
+----- Expresión 2: ((a + b) * c) + (d / e) -----
+
+📌 Notaciones:
+🔹 Prefija: + * + a b c / d e
+🔹 Postfija: a b + c * d e / +
+
+📌 Código Intermedio:
+T0 = a + b
+T1 = T0 * c
+T2 = d / e
+T3 = T1 + T2
+Z = T3
+
+📌 Código P (desde código intermedio):
+PUSH a
+PUSH b
+ADD
+PUSH T0
+PUSH c
+MUL
+PUSH d
+PUSH e
+DIV
+PUSH T1
+PUSH T2
+ADD
+
+📌 Código P (directo desde infijo):
+PUSH a
+PUSH b
+ADD
+PUSH c
+MUL
+PUSH d
+PUSH e
+DIV
+ADD
+
+📌 Triplos:
+(1, a, +, b)
+(2, T0, *, c)
+(3, d, /, e)
+(4, T1, +, T2)
+(5, =, T3, Z)
+
+📌 Cuádruplos:
+(1, a, +, b, T0)
+(2, T0, *, c, T1)
+(3, d, /, e, T2)
+(4, T1, +, T2, T3)
+(5, =, T3, Z, -)
+
+
+----- Expresión 3: x * (y + z) - (w / v) + u -----
+
+📌 Notaciones:
+🔹 Prefija: + - * x + y z / w v u
+🔹 Postfija: x y z + * w v / - u +
+
+📌 Código Intermedio:
+T0 = y + z
+T1 = x * T0
+T2 = w / v
+T3 = T1 - T2
+T4 = T3 + u
+Z = T4
+
+📌 Código P (desde código intermedio):
+PUSH y
+PUSH z
+ADD
+PUSH x
+PUSH T0
+MUL
+PUSH w
+PUSH v
+DIV
+PUSH T1
+PUSH T2
+SUB
+PUSH T3
+PUSH u
+ADD
+
+📌 Código P (directo desde infijo):
+PUSH x
+PUSH y
+PUSH z
+ADD
+MUL
+PUSH w
+PUSH v
+DIV
+SUB
+PUSH u
+ADD
+
+📌 Triplos:
+(1, y, +, z)
+(2, x, *, T0)
+(3, w, /, v)
+(4, T1, -, T2)
+(5, T3, +, u)
+(6, =, T4, Z)
+
+📌 Cuádruplos:
+(1, y, +, z, T0)
+(2, x, *, T0, T1)
+(3, w, /, v, T2)
+(4, T1, -, T2, T3)
+(5, T3, +, u, T4)
+(6, =, T4, Z, -)
+

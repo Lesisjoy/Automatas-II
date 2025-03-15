@@ -1,3 +1,5 @@
+import re
+
 def infijo_a_postfijo(expresion):
     """
     Convierte una expresión infija en notación postfija.
@@ -94,6 +96,82 @@ def infijo_a_prefijo(expresion):
         salida.append(pila.pop())
     return salida[::-1]  # Invertir la salida para obtener la notación prefija
 
+def infijo_a_codigo_p(expresion):
+    """
+    Convierte una expresión infija en código P.
+    
+    :param expresion: Expresión infija como cadena de texto.
+    :return: Código P como cadena de texto.
+    """
+    # Precedencia de los operadores
+    precedencia = {'+': 1, '-': 1, '*': 2, '/': 2, '%': 2}
+    
+    # Mapeo de operadores a sus equivalentes en código P
+    operadores_p = {
+        '+': 'ADD',
+        '-': 'SUB',
+        '*': 'MUL',
+        '/': 'DIV',
+        '%': 'MOD'
+    }
+    
+    # Función para verificar si un carácter es un operador
+    def es_operador(caracter):
+        return caracter in precedencia
+    
+    # Pila para operadores y salida para el código P
+    pila_operadores = []
+    codigo_p = []
+    
+    i = 0
+    while i < len(expresion):
+        caracter = expresion[i]
+        
+        # Ignorar espacios en blanco
+        if caracter == ' ':
+            i += 1
+            continue
+        
+        # Si es un paréntesis de apertura, lo agregamos a la pila
+        if caracter == '(':
+            pila_operadores.append(caracter)
+        
+        # Si es un paréntesis de cierre, procesamos los operadores hasta encontrar el de apertura
+        elif caracter == ')':
+            while pila_operadores and pila_operadores[-1] != '(':
+                codigo_p.append(operadores_p[pila_operadores.pop()])
+            pila_operadores.pop()  # Eliminar el '(' de la pila
+        
+        # Si es un operador, procesamos los operadores de mayor o igual precedencia
+        elif es_operador(caracter):
+            while (pila_operadores and pila_operadores[-1] != '(' and
+                   precedencia[pila_operadores[-1]] >= precedencia[caracter]):
+                codigo_p.append(operadores_p[pila_operadores.pop()])
+            pila_operadores.append(caracter)
+        
+        # Si es un operando (número o variable), lo agregamos directamente al código P
+        else:
+            # Manejar números de más de un dígito
+            if caracter.isdigit():
+                num = ''
+                while i < len(expresion) and expresion[i].isdigit():
+                    num += expresion[i]
+                    i += 1
+                codigo_p.append(f"PUSH {num}")
+                continue
+            else:
+                codigo_p.append(f"PUSH {caracter}")
+        
+        i += 1
+    
+    # Procesar los operadores restantes en la pila
+    while pila_operadores:
+        codigo_p.append(operadores_p[pila_operadores.pop()])
+    
+    # Unir el código P en una sola cadena con saltos de línea
+    return "\n".join(codigo_p)
+
+
 
 def postfijo_a_codigo_intermedio(postfijo):
     """
@@ -136,34 +214,11 @@ def postfijo_a_codigo_intermedio(postfijo):
             pila.append(temp)
             
             # Generar código P
-            # Usamos los operandos originales en lugar de las temporales
-            if operando1.startswith('T'):
-                # Si es una temporal, buscamos su definición en el código intermedio
-                for instruccion in codigo_intermedio:
-                    if instruccion.startswith(operando1):
-                        partes = instruccion.split()
-                        operando1_real = f"{partes[2]} {partes[3]} {partes[4]}"
-                        break
-            else:
-                operando1_real = operando1
-
-            if operando2.startswith('T'):
-                # Si es una temporal, buscamos su definición en el código intermedio
-                for instruccion in codigo_intermedio:
-                    if instruccion.startswith(operando2):
-                        partes = instruccion.split()
-                        operando2_real = f"{partes[2]} {partes[3]} {partes[4]}"
-                        break
-            else:
-                operando2_real = operando2
-
-            # Generar código P
-            codigo_p.append(f"PUSH {operando1_real}")
-            codigo_p.append(f"PUSH {operando2_real}")
+            codigo_p.append(f"PUSH {operando1}")
+            codigo_p.append(f"PUSH {operando2}")
             codigo_p.append(operadores_p[token])
         else:  # Es un operando (número o variable)
             pila.append(token)
-            # No hacemos PUSH aquí, solo cuando se use en una operación
     
     if len(pila) != 1:
         raise ValueError("Expresión inválida: la pila no se redujo a un solo valor.")
@@ -210,29 +265,6 @@ def generar_cuadruplos(codigo_intermedio):
     return cuadruplos
 
 
-def generar_codigo_intermedio(expresion):
-    """
-    Convierte una expresión infija en notación postfija y prefija, y genera código intermedio y código P.
-    
-    :param expresion: Expresión infija como cadena de texto.
-    :return: Una tupla con la notación postfija, prefija, código intermedio, código P, triplos y cuádruplos.
-    """
-    # Convertir la expresión infija a postfija
-    postfijo = infijo_a_postfijo(expresion)
-    
-    # Convertir la expresión infija a prefija
-    prefijo = infijo_a_prefijo(expresion)
-    
-    # Generar el código intermedio y el código P
-    codigo_intermedio, codigo_p = postfijo_a_codigo_intermedio(postfijo)
-    
-    # Generar triplos y cuádruplos
-    triplos = generar_triplos(codigo_intermedio)
-    cuadruplos = generar_cuadruplos(codigo_intermedio)
-    
-    return postfijo, prefijo, codigo_intermedio, codigo_p, triplos, cuadruplos
-
-
 def cargar_expresiones_desde_archivo(ruta_archivo):
     """
     Carga expresiones matemáticas desde un archivo.
@@ -275,7 +307,13 @@ def procesar_expresion(expresion, opcion, numero_expresion):
     :return: Lista de resultados.
     """
     try:
-        postfijo, prefijo, codigo_intermedio, codigo_p, triplos, cuadruplos = generar_codigo_intermedio(expresion)
+        postfijo = infijo_a_postfijo(expresion)
+        prefijo = infijo_a_prefijo(expresion)
+        codigo_intermedio, codigo_p_intermedio = postfijo_a_codigo_intermedio(postfijo)
+        codigo_p_directo = infijo_a_codigo_p(expresion)  # Generar código P directamente
+        triplos = generar_triplos(codigo_intermedio)
+        cuadruplos = generar_cuadruplos(codigo_intermedio)
+        
         resultados = [f"\n----- Expresión {numero_expresion}: {expresion} -----"]
         
         if opcion == '1' or opcion == '5':
@@ -287,8 +325,10 @@ def procesar_expresion(expresion, opcion, numero_expresion):
                 resultados.append(instruccion)
         
         if opcion == '2' or opcion == '5':
-            resultados.append("\n📌 Código P:")
-            resultados.append(codigo_p)
+            resultados.append("\n📌 Código P (desde código intermedio):")
+            resultados.append(codigo_p_intermedio)
+            resultados.append("\n📌 Código P (directo desde infijo):")
+            resultados.append(codigo_p_directo)
         
         if opcion == '3' or opcion == '5':
             resultados.append("\n📌 Triplos:")
@@ -338,10 +378,10 @@ def main():
         ruta_salida = "resultados.txt"
         with open(ruta_salida, "w", encoding="utf-8") as archivo:
             for resultado in resultados_totales:
-                archivo.write(resultado + "\n")
+                archivo.write(str(resultado) + "\n")  # Convertir a cadena si no lo es
         
         # Solo imprimir el mensaje de confirmación
-        print(f"✅ Resultados guardados en '{ruta_salida}'.")
+        print(f"\n✅ Resultados guardados en '{ruta_salida}'.")
 
 
 if __name__ == "__main__":
