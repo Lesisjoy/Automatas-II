@@ -1,5 +1,5 @@
 
------ Expresión 1: (a + b) * (c -(d +e)) -----
+----- Expresión 1: (a + b) * (c - (d + e)) -----
 
 📌 Notaciones:
 🔹 Prefija: * + a b - c + d e
@@ -38,18 +38,18 @@ SUB
 MUL
 
 📌 Triplos:
-(1, a, +, b)
-(2, d, +, e)
-(3, c, -, T1)
-(4, T0, *, T2)
+(1, +, a, b)
+(2, +, d, e)
+(3, -, c, T1)
+(4, *, T0, T2)
 (5, =, T3, Z)
 
 📌 Cuádruplos:
-(1, a, +, b, T0)
-(2, d, +, e, T1)
-(3, c, -, T1, T2)
-(4, T0, *, T2, T3)
-(5, =, T3, Z, -)
+(1, +, a, b, T0)
+(2, +, d, e, T1)
+(3, -, c, T1, T2)
+(4, *, T0, T2, T3)
+(5, =, T3, , Z)
 
 
 ----- Expresión 2: ((a + b) * c) + (d / e) -----
@@ -91,18 +91,18 @@ DIV
 ADD
 
 📌 Triplos:
-(1, a, +, b)
-(2, T0, *, c)
-(3, d, /, e)
-(4, T1, +, T2)
+(1, +, a, b)
+(2, *, T0, c)
+(3, /, d, e)
+(4, +, T1, T2)
 (5, =, T3, Z)
 
 📌 Cuádruplos:
-(1, a, +, b, T0)
-(2, T0, *, c, T1)
-(3, d, /, e, T2)
-(4, T1, +, T2, T3)
-(5, =, T3, Z, -)
+(1, +, a, b, T0)
+(2, *, T0, c, T1)
+(3, /, d, e, T2)
+(4, +, T1, T2, T3)
+(5, =, T3, , Z)
 
 
 ----- Expresión 3: x * (y + z) - (w / v) + u -----
@@ -150,18 +150,183 @@ PUSH u
 ADD
 
 📌 Triplos:
-(1, y, +, z)
-(2, x, *, T0)
-(3, w, /, v)
-(4, T1, -, T2)
-(5, T3, +, u)
+(1, +, y, z)
+(2, *, x, T0)
+(3, /, w, v)
+(4, -, T1, T2)
+(5, +, T3, u)
 (6, =, T4, Z)
 
 📌 Cuádruplos:
-(1, y, +, z, T0)
-(2, x, *, T0, T1)
-(3, w, /, v, T2)
-(4, T1, -, T2, T3)
-(5, T3, +, u, T4)
-(6, =, T4, Z, -)
+(1, +, y, z, T0)
+(2, *, x, T0, T1)
+(3, /, w, v, T2)
+(4, -, T1, T2, T3)
+(5, +, T3, u, T4)
+(6, =, T4, , Z)
 
+
+----- Expresión 4: ((6 + 4) / 2) + 3 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 5: (2 + 1) * 5 * (2 + 4 - 3) -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 6: 2 + 1 * 5 * 2 + 4 - 3 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 7: 3 + 5 * (2 - 8) -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 8: a + b * c - d / e -----
+
+📌 Notaciones:
+🔹 Prefija: - + a * b c / d e
+🔹 Postfija: a b c * + d e / -
+
+📌 Código Intermedio:
+T0 = b * c
+T1 = a + T0
+T2 = d / e
+T3 = T1 - T2
+Z = T3
+
+📌 Código P (desde código intermedio):
+PUSH b
+PUSH c
+MUL
+PUSH a
+PUSH T0
+ADD
+PUSH d
+PUSH e
+DIV
+PUSH T1
+PUSH T2
+SUB
+
+📌 Código P (directo desde infijo):
+PUSH a
+PUSH b
+PUSH c
+MUL
+ADD
+PUSH d
+PUSH e
+DIV
+SUB
+
+📌 Triplos:
+(1, *, b, c)
+(2, +, a, T0)
+(3, /, d, e)
+(4, -, T1, T2)
+(5, =, T3, Z)
+
+📌 Cuádruplos:
+(1, *, b, c, T0)
+(2, +, a, T0, T1)
+(3, /, d, e, T2)
+(4, -, T1, T2, T3)
+(5, =, T3, , Z)
+
+
+----- Expresión 9: (5 + 3) * 2 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 10: sin(3.1416 / 2) -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 11: x + y + z -----
+
+📌 Notaciones:
+🔹 Prefija: + + x y z
+🔹 Postfija: x y + z +
+
+📌 Código Intermedio:
+T0 = x + y
+T1 = T0 + z
+Z = T1
+
+📌 Código P (desde código intermedio):
+PUSH x
+PUSH y
+ADD
+PUSH T0
+PUSH z
+ADD
+
+📌 Código P (directo desde infijo):
+PUSH x
+PUSH y
+ADD
+PUSH z
+ADD
+
+📌 Triplos:
+(1, +, x, y)
+(2, +, T0, z)
+(3, =, T1, Z)
+
+📌 Cuádruplos:
+(1, +, x, y, T0)
+(2, +, T0, z, T1)
+(3, =, T1, , Z)
+
+
+----- Expresión 12: (a + b * (c - (d + e) -----
+❌ Error al procesar la expresión: Paréntesis no balanceados
+
+----- Expresión 13: 3 + * 5 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 14: 3 / 0 -----
+❌ Error al procesar la expresión: División por cero no permitida
+
+----- Expresión 15: 2 + (3 * (4 - ) -----
+❌ Error al procesar la expresión: Paréntesis no balanceados
+
+----- Expresión 16: a + b * c + @ -----
+❌ Error al procesar la expresión: Carácter no permitido: '@'
+
+----- Expresión 17: log(10) -----
+❌ Error al procesar la expresión: Función o variable no definida: 'log'
+
+----- Expresión 18: sqrt() -----
+❌ Error al procesar la expresión: Expresión inválida: falta un operador
+
+----- Expresión 19: () -----
+❌ Error al procesar la expresión: Paréntesis vacíos
+
+----- Expresión 20: 3.14.15 -----
+❌ Error al procesar la expresión: Número mal formado: múltiples puntos decimales
+
+----- Expresión 21: cos(0) + tan(0.7854) -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 22: y / 2 + sqrt(9) * 3 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 23: juan + pedro -----
+❌ Error al procesar la expresión: Función o variable no definida: 'juan'
+
+----- Expresión 24: 10 + -----
+❌ Error al procesar la expresión: Expresión incompleta
+
+----- Expresión 25: -10 - 10 -----
+❌ Error al procesar la expresión: Número mal formado: ''
+
+----- Expresión 26: 10 -----
+❌ Error al procesar la expresión: Expresión inválida: falta un operador
+
+----- Expresión 27: x -----
+❌ Error al procesar la expresión: Expresión inválida: falta un operador
+
+----- Expresión 28: sin(10) -----
+❌ Error al procesar la expresión: Expresión inválida: falta un operador
+
+----- Expresión 29: 10 + & -----
+❌ Error al procesar la expresión: Carácter no permitido: '&'
+
+----- Expresión 30: sin($) + 10 + c -----
+❌ Error al procesar la expresión: Carácter no permitido: '$'

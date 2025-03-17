@@ -1,4 +1,39 @@
+import ply.yacc as yacc
+import math
+import random
 import re
+from lexer import tokens
+
+
+# MANEJO DE ERORES #
+def verificar_errores(expresion):
+    # Verificar paréntesis balanceados
+    pila = []
+    for caracter in expresion:
+        if caracter == '(':
+            pila.append(caracter)
+        elif caracter == ')':
+            if not pila or pila[-1] != '(':
+                raise ValueError("Paréntesis no balanceados")
+            pila.pop()
+    if pila:
+        raise ValueError("Paréntesis no balanceados")
+
+    # Verificar operadores faltantes o mal colocados
+    operadores = ['+', '-', '*', '/', '%']
+    for i in range(len(expresion) - 1):
+        if expresion[i] in operadores and expresion[i + 1] in operadores:
+            raise ValueError("Operadores consecutivos no permitidos")
+
+    # Verificar división por cero
+    if '/ 0' in expresion or '% 0' in expresion:
+        raise ValueError("División por cero no permitida")
+
+    # Verificar caracteres no permitidos
+    caracteres_permitidos = set("0123456789+-*/%()^ ")
+    for caracter in expresion:
+        if caracter not in caracteres_permitidos:
+            raise ValueError(f"Carácter no permitido: '{caracter}'")
 
 def infijo_a_postfijo(expresion):
     """
@@ -7,46 +42,49 @@ def infijo_a_postfijo(expresion):
     :param expresion: Expresión infija como cadena de texto.
     :return: Lista de tokens en notación postfija.
     """
-    precedencia = {'+': 1, '-': 1, '*': 2, '/': 2, '%': 2}
-    
-    def es_operador(caracter):
-        return caracter in precedencia
-    
-    pila = []
-    salida = []
-    i = 0
-    while i < len(expresion):
-        caracter = expresion[i]
-        if caracter == ' ':
-            i += 1
-            continue
-        if caracter == '(':
-            pila.append(caracter)
-        elif caracter == ')':
-            while pila and pila[-1] != '(':
-                salida.append(pila.pop())
-            pila.pop()  # Eliminar el '('
-        elif es_operador(caracter):
-            while (pila and pila[-1] != '(' and
-                   precedencia[pila[-1]] >= precedencia[caracter]):
-                salida.append(pila.pop())
-            pila.append(caracter)
-        else:
-            # Es un operando (variable o número)
-            if caracter.isdigit():
-                num = ''
-                while i < len(expresion) and expresion[i].isdigit():
-                    num += expresion[i]
-                    i += 1
-                salida.append(num)
-                continue
-            else:
-                salida.append(caracter)
-        i += 1
-    while pila:
-        salida.append(pila.pop())
-    return salida
+    try:
 
+        precedencia = {'+': 1, '-': 1, '*': 2, '/': 2, '%': 2}
+        
+        def es_operador(caracter):
+            return caracter in precedencia
+        
+        pila = []
+        salida = []
+        i = 0
+        while i < len(expresion):
+            caracter = expresion[i]
+            if caracter == ' ':
+                i += 1
+                continue
+            if caracter == '(':
+                pila.append(caracter)
+            elif caracter == ')':
+                while pila and pila[-1] != '(':
+                    salida.append(pila.pop())
+                pila.pop()  # Eliminar el '('
+            elif es_operador(caracter):
+                while (pila and pila[-1] != '(' and
+                    precedencia[pila[-1]] >= precedencia[caracter]):
+                    salida.append(pila.pop())
+                pila.append(caracter)
+            else:
+                # Es un operando (variable o número)
+                if caracter.isdigit():
+                    num = ''
+                    while i < len(expresion) and expresion[i].isdigit():
+                        num += expresion[i]
+                        i += 1
+                    salida.append(num)
+                    continue
+                else:
+                    salida.append(caracter)
+            i += 1
+        while pila:
+            salida.append(pila.pop())
+        return salida
+    except Exception as e:
+        raise ValueError(f"Error en conversion a posfijo: {e}")
 
 def infijo_a_prefijo(expresion):
     """
@@ -242,9 +280,9 @@ def generar_triplos(codigo_intermedio):
     for i, instruccion in enumerate(codigo_intermedio):
         partes = instruccion.split()
         if len(partes) == 5:  # Formato: temp = operando1 operador operando2
-            triplos.append(f"({i+1}, {partes[2]}, {partes[3]}, {partes[4]})")
+            triplos.append(f"({i+1}, {partes[3]}, {partes[2]}, {partes[4]})")  # Formato: (número, operador, operando1, operando2)
         elif len(partes) == 3:  # Formato: Z = operando
-            triplos.append(f"({i+1}, =, {partes[2]}, Z)")
+            triplos.append(f"({i+1}, =, {partes[2]}, Z)")  # Formato: (número, operador, operando1, operando2)
     return triplos
 
 
@@ -259,9 +297,9 @@ def generar_cuadruplos(codigo_intermedio):
     for i, instruccion in enumerate(codigo_intermedio):
         partes = instruccion.split()
         if len(partes) == 5:  # Formato: temp = operando1 operador operando2
-            cuadruplos.append(f"({i+1}, {partes[2]}, {partes[3]}, {partes[4]}, {partes[0]})")
+            cuadruplos.append(f"({i+1}, {partes[3]}, {partes[2]}, {partes[4]}, {partes[0]})")  # Formato: (número, operador, operando1, operando2, resultado)
         elif len(partes) == 3:  # Formato: Z = operando
-            cuadruplos.append(f"({i+1}, =, {partes[2]}, Z, -)")
+            cuadruplos.append(f"({i+1}, =, {partes[2]}, , Z)")  # Formato: (número, operador, operando1, operando2, resultado)
     return cuadruplos
 
 
@@ -298,19 +336,14 @@ def mostrar_menu():
 
 
 def procesar_expresion(expresion, opcion, numero_expresion):
-    """
-    Procesa una expresión y devuelve los resultados según la opción seleccionada.
-    
-    :param expresion: Expresión en notación infija.
-    :param opcion: Opción seleccionada por el usuario.
-    :param numero_expresion: Número de la expresión (para etiquetar los resultados).
-    :return: Lista de resultados.
-    """
     try:
+        # Verificar errores antes de procesar
+        verificar_errores(expresion)
+        
         postfijo = infijo_a_postfijo(expresion)
         prefijo = infijo_a_prefijo(expresion)
         codigo_intermedio, codigo_p_intermedio = postfijo_a_codigo_intermedio(postfijo)
-        codigo_p_directo = infijo_a_codigo_p(expresion)  # Generar código P directamente
+        codigo_p_directo = infijo_a_codigo_p(expresion)
         triplos = generar_triplos(codigo_intermedio)
         cuadruplos = generar_cuadruplos(codigo_intermedio)
         
